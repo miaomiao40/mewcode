@@ -21,7 +21,9 @@
       "Bash(git branch *)",
       "Bash(git push *)",
       "Bash(python -c \"import mewcode; print\\('MewCode v' + mewcode.__version__\\)\")",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git rm *)",
+      "Bash(echo \"temp_mewcode\")"
     ]
   }
 }

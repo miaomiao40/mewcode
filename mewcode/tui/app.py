@@ -154,6 +154,8 @@ class MewCodeTUI(UIControl):
         # Also clear activated skills
         if self._skill_registry:
             self._skill_registry.clear_activated()
+        # Wipe session file so old context doesn't come back on restart
+        self._do_save()
         self._build_layout()
 
     async def trigger_compress(self) -> str:
