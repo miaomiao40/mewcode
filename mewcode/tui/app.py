@@ -476,7 +476,7 @@ class MewCodeTUI(UIControl):
         self._refresh()
 
     def _append(self, fragment) -> None:
-        self._append(fragment)
+        self._output_fragments.append(fragment)
         if len(self._output_fragments) > self._MAX_FRAGMENTS:
             self._output_fragments = self._output_fragments[-self._MAX_FRAGMENTS:]
 
