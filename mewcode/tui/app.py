@@ -291,13 +291,15 @@ class MewCodeTUI(UIControl):
                     return f"Skill '{meta.name}' 已激活。\n\n{skill.body[:1000]}"
             return f"Skill '{meta.name}' 激活失败"
 
-        self._cmd_registry.register(CommandMeta(
-            name=meta.name,
-            description=meta.description,
-            usage=f"/{meta.name}",
-            cmd_type=CommandType.UI,
-            handler=_handler,
-        ))
+        # Skip if command name already taken (e.g. built-in /review)
+        if self._cmd_registry.lookup(meta.name) is None:
+            self._cmd_registry.register(CommandMeta(
+                name=meta.name,
+                description=meta.description,
+                usage=f"/{meta.name}",
+                cmd_type=CommandType.UI,
+                handler=_handler,
+            ))
 
     # -- command handling ----------------------------------------------------
 
