@@ -227,7 +227,6 @@ class MewCodeTUI(UIControl):
             content=self._conversation_control,
             wrap_lines=True,
             always_hide_cursor=True,
-            allow_scroll_beyond_bottom=True,
         )
         # Input bar floats at bottom with status
         input_bar = HSplit([
@@ -495,15 +494,15 @@ class MewCodeTUI(UIControl):
         if len(self._output_fragments) > self._MAX_FRAGMENTS:
             self._output_fragments = self._output_fragments[-self._MAX_FRAGMENTS:]
         self._merged_text = merge_formatted_text(self._output_fragments)
+        # Auto-scroll to bottom on new content
+        try:
+            self._conversation_window._scroll_down(999999)
+        except Exception:
+            pass
 
     def _refresh(self) -> None:
         if self._app:
             self._app.invalidate()
-            # Auto-scroll conversation window to bottom
-            try:
-                self._conversation_window._scroll_down(999999)
-            except Exception:
-                pass
 
     def _do_save(self) -> None:
         self._session_store.save(
