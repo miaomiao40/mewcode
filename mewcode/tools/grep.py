@@ -5,7 +5,7 @@ from pathlib import Path
 
 from mewcode.tools.base import BaseTool, ToolCategory, ToolParameter, ToolResult
 
-MAX_RESULTS = 50
+MAX_RESULTS = 200
 SNIPPET_LENGTH = 300  # max chars of context per match
 
 

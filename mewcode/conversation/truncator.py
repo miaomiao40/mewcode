@@ -16,8 +16,8 @@ DEFAULT_STORAGE_DIR = Path.home() / ".mewcode" / "tool_results"
 
 @dataclass
 class TruncateConfig:
-    per_result_threshold: int = 50_000       # chars — truncate single result above this
-    total_round_threshold: int = 200_000     # chars — truncate largest when round exceeds this
+    per_result_threshold: int = 100_000      # chars — truncate single result above this
+    total_round_threshold: int = 500_000     # chars — truncate largest when round exceeds this
     preview_length: int = 2_000              # chars of preview kept in-conversation
     storage_dir: Path = DEFAULT_STORAGE_DIR
 
