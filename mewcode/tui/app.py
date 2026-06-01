@@ -11,7 +11,6 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import (
     HSplit,
     Layout,
-    ScrollablePane,
     Window,
 )
 from prompt_toolkit.layout.controls import FormattedTextControl
@@ -102,7 +101,7 @@ class MewCodeTUI(UIControl):
         self._completer = _CommandCompleter(self._cmd_registry)
 
         self._output_fragments: list = []
-        self._MAX_FRAGMENTS = 300
+        self._MAX_FRAGMENTS = 150
         self._merged_text: FormattedText = FormattedText()
         self._conversation_control = FormattedTextControl(
             text=lambda: self._merged_text,
@@ -221,12 +220,10 @@ class MewCodeTUI(UIControl):
         ])
         self._append(welcome)
 
-        self._conversation_pane = ScrollablePane(
-            content=Window(
-                content=self._conversation_control,
-                wrap_lines=True,
-                always_hide_cursor=True,
-            )
+        self._conversation_pane = Window(
+            content=self._conversation_control,
+            wrap_lines=True,
+            always_hide_cursor=True,
         )
         root = HSplit([
             self._conversation_pane,
@@ -485,12 +482,6 @@ class MewCodeTUI(UIControl):
     def _refresh(self) -> None:
         if self._app:
             self._app.invalidate()
-            # Auto-scroll to latest content
-            if hasattr(self, '_conversation_pane') and self._conversation_pane:
-                try:
-                    self._conversation_pane._scroll_to_bottom()
-                except Exception:
-                    pass
 
     def _do_save(self) -> None:
         self._session_store.save(
