@@ -498,6 +498,6 @@ class MewCodeTUI(UIControl):
     async def run_async(self) -> None:
         self._app = Application(
             layout=self._layout, key_bindings=self._kb, style=STYLE,
-            full_screen=True, mouse_support=False,
+            full_screen=False, mouse_support=False,
         )
         await self._app.run_async()
