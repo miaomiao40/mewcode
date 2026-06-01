@@ -1,0 +1,30 @@
+# MewCode 配置文件示例
+# 使用方法：复制为 .mewcode.yaml 放在当前目录，或 ~/.mewcode/config.yaml
+
+providers:
+  - name: claude
+    protocol: anthropic
+    model: claude-sonnet-4-6
+    base_url: https://api.anthropic.com
+    api_key: sk-ant-your-key-here
+
+  - name: gpt
+    protocol: openai
+    model: gpt-4o
+    base_url: https://api.openai.com
+    api_key: sk-your-key-here
+
+  - name: deepseek
+    protocol: deepseek
+    model: deepseek-chat
+    base_url: https://api.deepseek.com
+    api_key: sk-your-key-here
+
+  - name: deepseek-r1
+    protocol: deepseek
+    model: deepseek-reasoner
+    base_url: https://api.deepseek.com
+    api_key: sk-your-key-here
+
+# 当前使用的 provider（必须是上面列表中的 name）
+active_provider: claude

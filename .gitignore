@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+.conda/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MewCode runtime
+.mewcode/
+!mewcode/skills/builtin/
+!mewcode/subagent/roles/builtin/
+
+# Sensitive configs (keep examples)
+.mewcode.yaml
+.mewcode-security.yaml
+.mewcode-hooks.yaml
+.mewcode-mcp.yaml
+
+# Logs
+*.log
+
+# Backup files
+*.bak

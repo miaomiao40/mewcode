@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python --version; python -m pip --version)",
+      "PowerShell(& python.exe --version; & python.exe -m pip --version)",
+      "PowerShell(py *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Get-ChildItem -Recurse -File E:\\\\code agent\\\\mewcode | ForEach-Object { $_.FullName.Replace\\('E:\\\\code agent\\\\mewcode\\\\', ''\\).Replace\\('\\\\', '/'\\) } | Sort-Object)",
+      "PowerShell(Get-ChildItem -Recurse -File \"E:\\\\code agent\\\\mewcode\" | ForEach-Object { $_.FullName.Replace\\('E:\\\\code agent\\\\mewcode\\\\', ''\\).Replace\\('\\\\', '/'\\) } | Sort-Object)",
+      "PowerShell(Get-ChildItem -Recurse -Directory \"E:\\\\code agent\\\\mewcode\" | ForEach-Object { $_.FullName.Replace\\('E:\\\\code agent\\\\mewcode\\\\', ''\\).Replace\\('\\\\', '/'\\) } | Sort-Object)",
+      "PowerShell(Get-ChildItem -File \"E:\\\\code agent\\\\mewcode\\\\teams\\\\backends\" | ForEach-Object { $_.Name } | Sort-Object)",
+      "PowerShell(Get-ChildItem -File \"E:\\\\code agent\\\\mewcode\\\\prompts\\\\injections\" | ForEach-Object { $_.Name } | Sort-Object)",
+      "PowerShell(Get-ChildItem -File \"E:\\\\code agent\\\\mewcode\\\\subagent\\\\roles\" | ForEach-Object { $_.Name } | Sort-Object)",
+      "PowerShell(Get-ChildItem \"E:\\\\code agent\\\\mewcode\\\\teams\\\\backends\" | ForEach-Object { $_.FullName })",
+      "PowerShell(git *)",
+      "Bash(git config *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: MewCode — 终端 AI 编程助手 v0.1 *)"
+    ]
+  }
+}
