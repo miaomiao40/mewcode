@@ -172,12 +172,28 @@ class MewCodeTUI(UIControl):
     def get_session_list(self) -> list[dict]:
         return self._session_store.list_sessions()
 
-    def switch_session(self, session_id: str) -> str:
+    def load_session(self, session_id: str) -> str:
         restored = self._session_store.load(session_id)
         if restored is None:
             return f"会话 {session_id[:8]} 不存在"
-        # TODO: full session switching requires TUI restart — defer
-        return f"会话切换暂不支持运行时切换，请重启后指定会话"
+        restored_history, provider, model = restored
+        self._history._messages = restored_history._messages
+        self._output_fragments.clear()
+        self._build_layout()
+        self._output_fragments.append(
+            format_info(f"已加载会话 {session_id[:8]} ({len(restored_history)} 条消息)")
+        )
+        self._refresh()
+        return f"已加载会话 {session_id[:8]} ({len(restored_history)} 条消息)"
+
+    def new_session(self) -> str:
+        sid = self._session_store.new_session()
+        self._history.clear()
+        self._output_fragments.clear()
+        self._build_layout()
+        self._output_fragments.append(format_info(f"新会话 {sid}"))
+        self._refresh()
+        return f"新会话已创建: {sid}"
 
     def get_plan_only(self) -> bool:
         return self._agent_loop.plan_only

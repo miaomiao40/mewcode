@@ -71,10 +71,8 @@ async def main() -> None:
     history = ConversationHistory()
     session_store = SessionStore()
     session_store.migrate_old_format()  # one-time: default.json → JSONL
-    restored = session_store.load()
-    if restored is not None:
-        restored_history, _, _ = restored
-        history = restored_history
+    session_store.new_session()  # fresh session ID each startup
+    # Old sessions are NOT auto-restored — use /session load <id> manually
 
     # 4.5. Instructions
     instructions_text = InstructionsLoader().load()

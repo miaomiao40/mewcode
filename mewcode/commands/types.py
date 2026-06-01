@@ -76,8 +76,12 @@ class UIControl(ABC):
         ...
 
     @abstractmethod
-    def switch_session(self, session_id: str) -> str:
-        """Switch to a different session; return status message."""
+    def load_session(self, session_id: str) -> str:
+        """Load a saved session to replace current history."""
+        ...
+
+    def new_session(self) -> str:
+        """Start a new empty session."""
         ...
 
     @abstractmethod

@@ -1,4 +1,4 @@
-"""Session command — list, switch, new session."""
+"""Session command — list, load, new session."""
 
 from mewcode.commands.types import CommandMeta, CommandType, UIControl
 
@@ -16,23 +16,24 @@ def create(ui: UIControl) -> CommandMeta:
                 count = s.get("message_count", 0)
                 last = s.get("last_active_at", "")[:16]
                 lines.append(f"  {sid}  {title}  ({count} 条消息, {last})")
+            lines.append("\n使用 /session load <会话ID> 加载指定会话")
             return "\n".join(lines)
 
-        elif args[0] == "new":
-            return "新会话已创建（重启后生效）"
-
-        elif args[0] == "switch":
+        elif args[0] == "load":
             if len(args) < 2:
-                return "用法: /session switch <会话ID>"
-            return ui.switch_session(args[1])
+                return "用法: /session load <会话ID>"
+            return ui.load_session(args[1])
 
-        return f"未知子命令: {args[0]}。可用: list, new, switch"
+        elif args[0] == "new":
+            return ui.new_session()
+
+        return f"未知子命令: {args[0]}。可用: list, load, new"
 
     return CommandMeta(
         name="session",
         aliases=["sess"],
-        description="管理会话（list / new / switch）",
-        usage="/session [list | new | switch <id>]",
+        description="管理会话（list / load / new）",
+        usage="/session [list | load <id> | new]",
         cmd_type=CommandType.UI,
         handler=handler,
     )
