@@ -9,6 +9,8 @@ from prompt_toolkit.filters import Condition
 from prompt_toolkit.formatted_text import FormattedText, merge_formatted_text
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import (
+    Float,
+    FloatContainer,
     HSplit,
     Layout,
     Window,
@@ -220,17 +222,24 @@ class MewCodeTUI(UIControl):
         ])
         self._append(welcome)
 
-        self._conversation_pane = Window(
+        # Conversation takes full screen with scroll beyond bottom
+        self._conversation_window = Window(
             content=self._conversation_control,
             wrap_lines=True,
             always_hide_cursor=True,
+            allow_scroll_beyond_bottom=True,
         )
-        root = HSplit([
-            self._conversation_pane,
-            Window(height=1, char="─"),
+        # Input bar floats at bottom with status
+        input_bar = HSplit([
             Window(content=self._status_control, height=1),
             self._input_area,
         ])
+        root = FloatContainer(
+            content=self._conversation_window,
+            floats=[
+                Float(input_bar, bottom=0, left=0, right=0),
+            ],
+        )
         return Layout(root, focused_element=self._input_area)
 
     def _build_status(self) -> FormattedText:
@@ -299,6 +308,14 @@ class MewCodeTUI(UIControl):
         def _(event):
             if not self._generating:
                 asyncio.ensure_future(self._manual_compress())
+
+        @kb.add("c-up", eager=True)
+        def _(event):
+            self._conversation_window._scroll_up(3)
+
+        @kb.add("c-down", eager=True)
+        def _(event):
+            self._conversation_window._scroll_down(3)
 
         return kb
 
