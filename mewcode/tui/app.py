@@ -102,6 +102,7 @@ class MewCodeTUI(UIControl):
         self._completer = _CommandCompleter(self._cmd_registry)
 
         self._output_fragments: list = []
+        self._MAX_FRAGMENTS = 300  # cap to keep TUI responsive
         self._input_area = TextArea(
             height=1, prompt="> ", multiline=False,
             focus_on_click=True, completer=self._completer,
@@ -126,7 +127,7 @@ class MewCodeTUI(UIControl):
     # -- UIControl implementation --------------------------------------------
 
     def show_system_message(self, text: str) -> None:
-        self._output_fragments.append(format_info(f"\n{text}"))
+        self._append(format_info(f"\n{text}"))
         self._refresh()
 
     def send_to_conversation(self, text: str) -> None:
@@ -180,7 +181,7 @@ class MewCodeTUI(UIControl):
         self._history._messages = restored_history._messages
         self._output_fragments.clear()
         self._build_layout()
-        self._output_fragments.append(
+        self._append(
             format_info(f"已加载会话 {session_id[:8]} ({len(restored_history)} 条消息)")
         )
         self._refresh()
@@ -191,7 +192,7 @@ class MewCodeTUI(UIControl):
         self._history.clear()
         self._output_fragments.clear()
         self._build_layout()
-        self._output_fragments.append(format_info(f"新会话 {sid}"))
+        self._append(format_info(f"新会话 {sid}"))
         self._refresh()
         return f"新会话已创建: {sid}"
 
@@ -217,7 +218,7 @@ class MewCodeTUI(UIControl):
             ("class:info", "\nCtrl+C exit | Enter submit | /help for commands\n"),
             ("", "─" * 60),
         ])
-        self._output_fragments.append(welcome)
+        self._append(welcome)
 
         conversation_window = ScrollablePane(
             content=Window(
@@ -266,14 +267,14 @@ class MewCodeTUI(UIControl):
             self._agent_loop.cancel()
             self._do_save()
             asyncio.ensure_future(self._exit_notes())
-            self._output_fragments.append(format_info("Goodbye!"))
+            self._append(format_info("Goodbye!"))
             if self._app:
                 self._app.exit()
 
         @kb.add("c-p", eager=True)
         def _(event):
             new_state = self._agent_loop.toggle_plan_only()
-            self._output_fragments.append(
+            self._append(
                 format_info(f"Plan-only 模式: {'ON' if new_state else 'OFF'}"))
             self._refresh()
 
@@ -293,7 +294,7 @@ class MewCodeTUI(UIControl):
             self._security_level = levels[(idx + 1) % len(levels)]
             self._agent_loop.set_security_level(self._security_level)
             labels = {SecurityLevel.STRICT: "严格", SecurityLevel.NORMAL: "默认", SecurityLevel.PERMISSIVE: "放行"}
-            self._output_fragments.append(format_info(f"安全等级: {labels[self._security_level]}"))
+            self._append(format_info(f"安全等级: {labels[self._security_level]}"))
             self._refresh()
 
         @kb.add("c-q", eager=True)
@@ -330,25 +331,25 @@ class MewCodeTUI(UIControl):
     async def _handle_command(self, text: str) -> None:
         was_cmd, result = await self._cmd_dispatcher.dispatch(text)
         if result:
-            self._output_fragments.append(format_info(result))
+            self._append(format_info(result))
             self._refresh()
 
     # -- message handling ----------------------------------------------------
 
     async def _on_user_input(self, text: str) -> None:
         self._generating = True
-        self._output_fragments.append(format_user_message(text))
+        self._append(format_user_message(text))
         self._history.add_user_message(text)
         self._refresh()
 
         comp = await self._compressor.check_and_compress(self._history, self._agent_loop.provider)
         if comp.warning_issued:
-            self._output_fragments.append(format_warning(
+            self._append(format_warning(
                 f"上下文窗口使用超过 {self._compressor.warning_threshold} tokens "
                 f"(窗口上限 {self._compressor.context_window})"))
             self._refresh()
         if comp.was_compressed:
-            self._output_fragments.append(format_info(
+            self._append(format_info(
                 f"上下文已压缩：{comp.messages_compressed} 条消息 → "
                 f"摘要，节省约 {comp.estimated_tokens_saved} tokens"))
             self._refresh()
@@ -368,10 +369,10 @@ class MewCodeTUI(UIControl):
                             ("class:ai-prefix", ai_prefix)])
                 if streaming_start is None:
                     streaming_start = len(self._output_fragments)
-                    self._output_fragments.append(FormattedText([("class:ai-prefix", ai_prefix)]))
+                    self._append(FormattedText([("class:ai-prefix", ai_prefix)]))
                 current_response += event.text
                 del self._output_fragments[streaming_start + 1:]
-                self._output_fragments.append(FormattedText([("", current_response)]))
+                self._append(FormattedText([("", current_response)]))
                 self._refresh()
 
             elif isinstance(event, ThinkingEvent):
@@ -379,18 +380,18 @@ class MewCodeTUI(UIControl):
                     thinking_active = True
                     if streaming_start is None:
                         streaming_start = len(self._output_fragments)
-                        self._output_fragments.append(
+                        self._append(
                             FormattedText([("class:thinking", f"\n\n[{event.label}] ")]))
                     else:
                         self._output_fragments[streaming_start] = FormattedText([
                             ("class:thinking", f"\n\n[{event.label}] ")])
                 del self._output_fragments[streaming_start + 1:]
-                self._output_fragments.append(FormattedText([("class:thinking", event.text)]))
+                self._append(FormattedText([("class:thinking", event.text)]))
                 self._refresh()
 
             elif isinstance(event, ToolCallEvent):
                 args_str = ", ".join(f"{k}={v!r}" for k, v in event.tool_call.input.items())
-                self._output_fragments.append(format_info(f"\n🔧 {event.tool_call.name}({args_str})"))
+                self._append(format_info(f"\n🔧 {event.tool_call.name}({args_str})"))
                 self._refresh()
 
             elif isinstance(event, ToolResultEvent):
@@ -398,36 +399,36 @@ class MewCodeTUI(UIControl):
                 if len(event.result.content) > 500:
                     display += "..."
                 if event.result.success:
-                    self._output_fragments.append(format_info(f"  → {display}"))
+                    self._append(format_info(f"  → {display}"))
                 else:
-                    self._output_fragments.append(format_error(f"  → {event.result.error}"))
+                    self._append(format_error(f"  → {event.result.error}"))
                 self._refresh()
 
             elif isinstance(event, ToolBlockedEvent):
-                self._output_fragments.append(format_warning(f"\n⛔ {event.reason}"))
+                self._append(format_warning(f"\n⛔ {event.reason}"))
                 self._refresh()
 
             elif isinstance(event, TruncationEvent):
-                self._output_fragments.append(format_info(
+                self._append(format_info(
                     f"\n📎 {event.tool_name} 结果过大（{event.original_chars:,} 字符）→ 存盘 {event.file_path}"))
                 self._refresh()
 
             elif isinstance(event, HITLRequestEvent):
-                self._output_fragments.append(
+                self._append(
                     FormattedText([("class:warning", f"\n{event.prompt}\n")]))
                 self._hitl_future = event.future
                 self._refresh()
 
             elif isinstance(event, AgentDoneEvent):
                 if self._agent_loop.cache_hit:
-                    self._output_fragments.append(
+                    self._append(
                         FormattedText([("class:info", " [cache: ✓]")]))
                     self._refresh()
                 asyncio.ensure_future(self._maybe_update_notes())
                 break
 
             elif isinstance(event, ErrorEvent):
-                self._output_fragments.append(format_error(f"\n{event.message}"))
+                self._append(format_error(f"\n{event.message}"))
                 self._refresh()
                 break
 
@@ -444,7 +445,7 @@ class MewCodeTUI(UIControl):
         if self._hitl_future and not self._hitl_future.done():
             labels = {HITLDecision.ALLOW_ONCE: "允许(本次)", HITLDecision.ALLOW_SESSION: "允许(本会话)",
                       HITLDecision.ALLOW_PERMANENT: "允许(永久)", HITLDecision.DENY: "拒绝"}
-            self._output_fragments.append(format_info(f" → {labels[decision]}"))
+            self._append(format_info(f" → {labels[decision]}"))
             self._refresh()
             self._hitl_future.set_result(decision)
             self._hitl_future = None
@@ -452,7 +453,7 @@ class MewCodeTUI(UIControl):
     async def _maybe_update_notes(self) -> None:
         count = await self._agent_loop.update_notes_if_needed()
         if count > 0:
-            self._output_fragments.append(format_info(f"📝 已更新 {count} 个笔记文件"))
+            self._append(format_info(f"📝 已更新 {count} 个笔记文件"))
             self._refresh()
 
     async def _exit_notes(self) -> None:
@@ -465,14 +466,19 @@ class MewCodeTUI(UIControl):
         result = await self._compressor.check_and_compress(
             self._history, self._agent_loop.provider)
         if result.was_compressed:
-            self._output_fragments.append(format_info(
+            self._append(format_info(
                 f"上下文已压缩：{result.messages_compressed} 条消息 → "
                 f"摘要，节省约 {result.estimated_tokens_saved} tokens"))
         elif self._compressor.circuit_open:
-            self._output_fragments.append(format_warning("压缩熔断——已停止自动压缩"))
+            self._append(format_warning("压缩熔断——已停止自动压缩"))
         else:
-            self._output_fragments.append(format_info("当前无需压缩"))
+            self._append(format_info("当前无需压缩"))
         self._refresh()
+
+    def _append(self, fragment) -> None:
+        self._append(fragment)
+        if len(self._output_fragments) > self._MAX_FRAGMENTS:
+            self._output_fragments = self._output_fragments[-self._MAX_FRAGMENTS:]
 
     def _refresh(self) -> None:
         if self._app:
