@@ -84,6 +84,10 @@ class UIControl(ABC):
         """Start a new empty session."""
         ...
 
+    def delete_session(self, session_id: str) -> str:
+        """Delete a saved session from disk."""
+        ...
+
     @abstractmethod
     def get_plan_only(self) -> bool:
         ...

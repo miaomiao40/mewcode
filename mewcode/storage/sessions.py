@@ -232,6 +232,22 @@ class SessionStore:
         safe = sid.replace("\\", "_").replace("/", "_")
         return SESSIONS_DIR / f"{safe}.meta.json"
 
+    def delete(self, session_id: str) -> bool:
+        """Delete a session and its meta file from disk."""
+        sid = self._resolve_id(session_id)
+        if sid is None:
+            return False
+        jsonl = self._path_for(sid)
+        meta = self._meta_path_for(sid)
+        deleted = False
+        if jsonl.exists():
+            jsonl.unlink()
+            deleted = True
+        if meta.exists():
+            meta.unlink()
+            deleted = True
+        return deleted
+
     def _resolve_id(self, session_name: str) -> str | None:
         if session_name != "default":
             # Support partial ID matching (prefix)

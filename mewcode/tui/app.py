@@ -195,6 +195,12 @@ class MewCodeTUI(UIControl):
         self._refresh()
         return f"新会话已创建: {sid}"
 
+    def delete_session(self, session_id: str) -> str:
+        ok = self._session_store.delete(session_id)
+        if ok:
+            return f"会话 {session_id} 已删除"
+        return f"会话 {session_id} 不存在"
+
     def get_plan_only(self) -> bool:
         return self._agent_loop.plan_only
 
