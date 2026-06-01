@@ -234,7 +234,17 @@ class SessionStore:
 
     def _resolve_id(self, session_name: str) -> str | None:
         if session_name != "default":
-            return session_name
+            # Support partial ID matching (prefix)
+            jsonl = SESSIONS_DIR / f"{session_name}.jsonl"
+            if jsonl.exists():
+                return session_name
+            # Try prefix match
+            matches = list(SESSIONS_DIR.glob(f"{session_name}*.jsonl"))
+            if len(matches) == 1:
+                return matches[0].stem
+            elif len(matches) > 1:
+                return None  # ambiguous
+            return None
         # Find most recent session
         metas = sorted(SESSIONS_DIR.glob("*.meta.json"),
                        key=lambda p: p.stat().st_mtime, reverse=True)

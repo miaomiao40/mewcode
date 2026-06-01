@@ -11,7 +11,7 @@ def create(ui: UIControl) -> CommandMeta:
                 return "没有保存的会话"
             lines = ["会话列表:"]
             for s in sessions[:20]:
-                sid = s.get("id", "?")[:8]
+                sid = s.get("id", "?")[:12]
                 title = s.get("title", "无标题")[:50]
                 count = s.get("message_count", 0)
                 last = s.get("last_active_at", "")[:16]
