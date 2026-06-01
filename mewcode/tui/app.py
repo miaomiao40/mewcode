@@ -499,6 +499,11 @@ class MewCodeTUI(UIControl):
     def _refresh(self) -> None:
         if self._app:
             self._app.invalidate()
+            # Auto-scroll conversation window to bottom
+            try:
+                self._conversation_window._scroll_down(999999)
+            except Exception:
+                pass
 
     def _do_save(self) -> None:
         self._session_store.save(
