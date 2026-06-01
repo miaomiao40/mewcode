@@ -220,15 +220,15 @@ class MewCodeTUI(UIControl):
         ])
         self._append(welcome)
 
-        conversation_window = ScrollablePane(
+        self._conversation_pane = ScrollablePane(
             content=Window(
                 content=self._conversation_control,
-                wrap_lines=True, always_hide_cursor=True,
+                wrap_lines=True,
+                always_hide_cursor=True,
             )
         )
-        # Output = conversation + status bar
         root = HSplit([
-            conversation_window,
+            self._conversation_pane,
             Window(height=1, char="─"),
             Window(content=self._status_control, height=1),
             self._input_area,
@@ -301,6 +301,19 @@ class MewCodeTUI(UIControl):
         def _(event):
             if not self._generating:
                 asyncio.ensure_future(self._manual_compress())
+
+        # Scroll the conversation window manually
+        @kb.add("pagedown", eager=True)
+        def _(event):
+            w = event.app.layout.current_window
+            if hasattr(w, 'render_info') and w.render_info:
+                w._scroll_down()
+
+        @kb.add("pageup", eager=True)
+        def _(event):
+            w = event.app.layout.current_window
+            if hasattr(w, 'render_info') and w.render_info:
+                w._scroll_up()
 
         return kb
 
@@ -483,6 +496,12 @@ class MewCodeTUI(UIControl):
     def _refresh(self) -> None:
         if self._app:
             self._app.invalidate()
+            # Auto-scroll to latest content
+            if hasattr(self, '_conversation_pane') and self._conversation_pane:
+                try:
+                    self._conversation_pane._scroll_to_bottom()
+                except Exception:
+                    pass
 
     def _do_save(self) -> None:
         self._session_store.save(
