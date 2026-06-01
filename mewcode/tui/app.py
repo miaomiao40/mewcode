@@ -102,14 +102,15 @@ class MewCodeTUI(UIControl):
         self._completer = _CommandCompleter(self._cmd_registry)
 
         self._output_fragments: list = []
-        self._MAX_FRAGMENTS = 300  # cap to keep TUI responsive
+        self._MAX_FRAGMENTS = 300
+        self._merged_text: FormattedText = FormattedText()
+        self._conversation_control = FormattedTextControl(
+            text=lambda: self._merged_text,
+            focusable=False,
+        )
         self._input_area = TextArea(
             height=1, prompt="> ", multiline=False,
             focus_on_click=True, completer=self._completer,
-        )
-        self._conversation_control = FormattedTextControl(
-            text=lambda: merge_formatted_text(self._output_fragments),
-            focusable=False,
         )
         # Status bar
         self._status_control = FormattedTextControl(
@@ -302,19 +303,6 @@ class MewCodeTUI(UIControl):
             if not self._generating:
                 asyncio.ensure_future(self._manual_compress())
 
-        # Scroll the conversation window manually
-        @kb.add("pagedown", eager=True)
-        def _(event):
-            w = event.app.layout.current_window
-            if hasattr(w, 'render_info') and w.render_info:
-                w._scroll_down()
-
-        @kb.add("pageup", eager=True)
-        def _(event):
-            w = event.app.layout.current_window
-            if hasattr(w, 'render_info') and w.render_info:
-                w._scroll_up()
-
         return kb
 
     def _register_skill_command(self, meta) -> None:
@@ -492,6 +480,7 @@ class MewCodeTUI(UIControl):
         self._output_fragments.append(fragment)
         if len(self._output_fragments) > self._MAX_FRAGMENTS:
             self._output_fragments = self._output_fragments[-self._MAX_FRAGMENTS:]
+        self._merged_text = merge_formatted_text(self._output_fragments)
 
     def _refresh(self) -> None:
         if self._app:
